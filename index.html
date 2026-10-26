@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Which Came First? · a daily ten from history</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%235b3a8e'/%3E%3Cpath d='M5 21h22' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='10' cy='21' r='3.6' fill='%23fff'/%3E%3Ccircle cx='22' cy='21' r='3.6' fill='none' stroke='%23fff' stroke-width='2.2'/%3E%3Cpath d='M10 8v8' stroke='%23fff' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#5b3a8e">
+<meta name="description" content="Two famous things, one question: which came first? The telephone or photography? Titanic or the Higgs boson? Ten a day, from centuries apart to a year.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://matmat202.github.io/which-first/">
+<meta property="og:title" content="Which Came First?">
+<meta property="og:description" content="The telephone or photography? Ten a day, from Wikidata.">
+<meta name="twitter:card" content="summary">
+<style>
+:root{color-scheme:light;--ground:#f8f7fa;--card:#fff;--ink:#16202a;--ink-2:#4f5b66;--ink-3:#66727d;
+  --line:#dfdbe6;--sea:#efeaf6;--land:#cfd9cf;--land-edge:#b4c2b4;--accent:#5b3a8e;
+  --a:#2a78d6;--b:#c2521f;--good:#137a4f;--bad:#b3261e;
+  --f-ui:system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root{color-scheme:dark;--ground:#141218;--card:#1e1b24;--ink:#e9eef2;
+  --ink-2:#b0bcc6;--ink-3:#93a0ab;--line:#33303b;--sea:#221d2c;--land:#33433a;--land-edge:#465a4d;--accent:#c6a8f2;
+  --a:#5aa2f0;--b:#f08a55;--good:#4cc98d;--bad:#ff8a80}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--f-ui);font-size:15px}
+main{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:24px;margin:4px 0 2px}h1 span{color:var(--accent)}
+.sub{color:var(--ink-2);font-size:13px;margin:0 0 14px;line-height:1.45}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 10px;font-size:13px;color:var(--ink-2)}
+.marks{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.marks li{width:14px;height:14px;border-radius:4px;border:1px solid var(--line);background:var(--card)}
+.marks li.y{background:var(--good);border-color:var(--good)}
+.marks li.n{background:var(--bad);border-color:var(--bad)}
+.marks li.now{border:2px solid var(--accent)}
+h2.q{font-size:18px;margin:6px 0 10px;text-align:center}
+.pick{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pick button{font:inherit;text-align:center;padding:18px 10px;border:2px solid var(--line);border-radius:14px;background:var(--card);
+  color:var(--ink);cursor:pointer;min-height:96px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.pick button:hover:not(:disabled){border-color:var(--accent)}
+.pick button b{font-size:20px;line-height:1.2}
+.pick button small{color:var(--ink-2);font-size:13px}
+.pick button .desc{color:var(--ink-3);font-size:12px;line-height:1.35}
+.pick button .lat{font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;min-height:1.2em}
+.pick button.a .lat{color:var(--a)}.pick button.b .lat{color:var(--b)}
+.pick button:disabled{cursor:default}
+.pick button.right{border-color:var(--good)}
+.pick button.wrong{border-color:var(--bad)}
+.pick .key{font-size:11px;color:var(--ink-3)}
+.out{margin:12px 0 0;text-align:center;min-height:1.4em;font-size:15px}
+.out b.y{color:var(--good)}.out b.n{color:var(--bad)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;margin:12px 0 0}
+#map svg{display:block;width:100%;height:auto}
+#map .axis{stroke:var(--line);stroke-width:3;stroke-linecap:round}
+#map .gap{stroke:var(--ink-3);stroke-width:3;stroke-linecap:round}
+#map circle{stroke:var(--card);stroke-width:2}
+#map circle.a{fill:var(--a)}#map circle.b{fill:var(--b)}
+#map text{font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+#map text.a{fill:var(--a)}#map text.b{fill:var(--b)}
+.go{display:flex;justify-content:center;gap:8px;margin:12px 0 0;flex-wrap:wrap}
+.go button{font:inherit;font-weight:600;padding:10px 18px;border:0;border-radius:10px;background:var(--accent);color:var(--card);cursor:pointer}
+.go button.ghost{background:var(--card);color:var(--accent);border:1px solid var(--line)}
+.end{text-align:center}
+.end .score{font-size:40px;font-weight:700;margin:4px 0 0}
+.end p{margin:4px 0;color:var(--ink-2)}
+ol.recap{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:6px}
+ol.recap li{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;display:flex;gap:8px;align-items:baseline}
+ol.recap li .m{font-weight:700;width:1.2em;flex:none}
+ol.recap li .m.y{color:var(--good)}ol.recap li .m.n{color:var(--bad)}
+ol.recap li .t{flex:1;min-width:0}
+ol.recap li .d{color:var(--ink-2);font-variant-numeric:tabular-nums;white-space:nowrap}
+footer{font-size:12px;color:var(--ink-2);line-height:1.5;margin:18px 2px 8px}
+[hidden]{display:none!important}
+@media (max-width:480px){.pick button b{font-size:17px}.pick .key{display:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Which Came <span>First?</span></h1>
+<p class="sub">Two famous things. Which one came first? Ten a day, from centuries apart to a single year.</p>
+
+<section id="play" aria-live="polite">
+  <div class="bar"><span id="round">Round 1 of 10</span><ol class="marks" id="marks" aria-label="Your answers so far"></ol></div>
+  <h2 class="q">Which came first?</h2>
+  <div class="pick" id="pick">
+    <button type="button" class="a" data-i="0"><b></b><small></small><span class="desc"></span><span class="lat"></span><span class="key">← or 1</span></button>
+    <button type="button" class="b" data-i="1"><b></b><small></small><span class="desc"></span><span class="lat"></span><span class="key">→ or 2</span></button>
+  </div>
+  <p class="out" id="out"></p>
+  <div class="card" id="map" hidden></div>
+  <div class="go"><button type="button" id="next" hidden>Next</button></div>
+</section>
+
+<section id="end" class="end" hidden>
+  <p id="endday"></p>
+  <div class="score" id="score"></div>
+  <p id="streak"></p>
+  <div class="go">
+    <button type="button" id="share">Copy result</button>
+    <button type="button" id="practice" class="ghost">Practice ten more</button>
+    <button type="button" id="daily" class="ghost" hidden>Back to today's</button>
+  </div>
+  <p id="copied" aria-live="polite"></p>
+  <ol class="recap" id="recap"></ol>
+</section>
+
+<footer>
+  Things and dates: <a href="https://www.wikidata.org/">Wikidata</a> (CC0) — <span id="count">1,000-odd</span> inventions, discoveries, films,
+  books, games, albums, songs, paintings, TV series, companies and landmarks, the ones with articles in the most Wikipedias.
+  The year is Wikidata's: release for a film, publication for a book, discovery or invention for an idea. Some are arguable,
+  and Wikidata is volunteer-edited. A new ten every day at your midnight; everyone gets the same ten. Nothing leaves your browser.
+  <br>Made by Claude for <a href="https://matmat202.github.io/">matmat202</a> ·
+  <a href="https://github.com/matmat202/which-first">source</a>
+</footer>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
