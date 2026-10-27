@@ -61,6 +61,18 @@ ok('but reach the tail', Math.max(...picks) > 300, Math.max(...picks));
 const tiny = [['a', 1900, 'film', 9, 'Q1', ''], ['b', 1990, 'book', 8, 'Q2', '']];
 eq('a pool too small for ten gives what it can', L.pairsFor(tiny, 'x').length, 1);
 
+// --- earlier days (?day=) ----------------------------------------------------------------
+eq('prevDay crosses a month', [L.prevDay('2026-11-01'), L.prevDay('2027-01-01')], ['2026-10-31', '2026-12-31']);
+eq('pastDay takes an earlier real day', L.pastDay('2026-10-27', '2026-10-30'), '2026-10-27');
+eq('pastDay takes the first day', L.pastDay(L.FIRST_DAY, '2026-10-30'), L.FIRST_DAY);
+eq('pastDay refuses before the first day', L.pastDay('2026-10-25', '2026-10-30'), null);
+eq('pastDay refuses today and later', [L.pastDay('2026-10-30', '2026-10-30'), L.pastDay('2026-10-31', '2026-10-30')], [null, null]);
+eq('pastDay refuses non-dates', ['2026-11-31', '2027-02-29', '2026-13-01', '26-10-27', '', null, '2026-10-27x'].map((p) => L.pastDay(p, '2027-06-01')), [null, null, null, null, null, null, null]);
+const played = new Set(['2026-10-29', '2026-10-28']);
+eq('missedDay skips played days', L.missedDay('2026-10-30', (d) => played.has(d)), '2026-10-27');
+eq('missedDay is yesterday when unplayed', L.missedDay('2026-10-30', () => false), '2026-10-29');
+eq('missedDay stops at the first day', [L.missedDay('2026-10-30', () => true), L.missedDay(L.FIRST_DAY, () => false)], [null, null]);
+
 // --- the shipped pool ---------------------------------------------------------------------
 const poolFile = here('./data/pool.json');
 if (existsSync(poolFile)) {
