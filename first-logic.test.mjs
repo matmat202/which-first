@@ -93,6 +93,22 @@ if (existsSync(poolFile)) {
   eq('shipped: at most 24 chemical elements', I.filter((x) => /^chemical element/.test(x.desc)).length <= 24, true);
   eq('shipped: no year in any description', I.filter((x) => /\b(1\d{3}|20\d\d)\b/.test(x.desc)).map((x) => x.name), []);
   eq('shipped: the excluded stay out', I.filter((x) => ['Q7341', 'Q42523'].includes(x.q)).length, 0);
+  // Wrong on Wikidata, read by hand 2026-10-27 (projects/first-years/): five corrected...
+  eq('shipped: corrected years', ['United States Constitution|book', "Coulomb's law|discovery", 'Rugby sevens|discovery', 'The Mysterious Island|book', 'The Avengers|film']
+    .map((k) => by[k]), [1787, 1785, 1883, 1875, 2012]);
+  // ...and fifteen with no one right year (The Republic "1963", Hammurabi "1853"), out.
+  const OUT = ['Q123397', 'Q9190', 'Q682958', 'Q210752', 'Q131546', 'Q36359', 'Q134566', 'Q12757', 'Q11427', 'Q682', 'Q623', 'Q12725', 'Q16338', 'Q163865', 'Q23648408'];
+  eq('shipped: cards with no right year are out', I.filter((x) => OUT.includes(x.q)).map((x) => x.name), []);
+  eq('shipped: nothing dated after it was fetched', I.filter((x) => x.year > +P.fetched.slice(0, 4)).map((x) => x.name), []);
+  // The days dealt before the fix keep the list they were dealt from, byte for byte.
+  const old = here('data/pool-1.json');
+  const { createHash } = await import('node:crypto');
+  eq('pool-1.json is the list as first shipped', existsSync(old) && createHash('sha256').update(readFileSync(old)).digest('hex'),
+    'da23207afc7268b470dccac23776a277921021c092469bac4222257dd0cd5e13');
+  eq('days before the fix use the old list', ['2026-10-26', '2026-10-27', '2026-10-28', '2027-01-01', 'practice-abc', ''].map(L.poolFile),
+    ['data/pool-1.json', 'data/pool-1.json', 'data/pool.json', 'data/pool.json', 'data/pool.json', 'data/pool.json']);
+  const P1 = JSON.parse(readFileSync(old, 'utf8')).items.map(L.item);
+  eq('the old list still has the year it was played with', P1.find((x) => x.q === 'Q123397')?.year, 1963);
   eq('shipped: names start with a capital, eBay excepted', I.filter((x) => /^[a-z]/.test(x.name) && !/^[a-z][A-Z]/.test(x.name)).map((x) => x.name), []);
   eq('shipped: descriptions fit a card', I.filter((x) => x.desc.length > 91).length, 0);
   eq('shipped: Europe is not a discovery', by['Europe|discovery'], undefined);

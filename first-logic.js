@@ -108,6 +108,12 @@ export function dayKey(d = new Date()) {
 // The first day a daily ten was served. ?day= plays any day from here up to yesterday.
 export const FIRST_DAY = '2026-10-26';
 
+// Twenty cards had wrong years until 2026-10-28 (projects/first-years/). Days before that
+// were dealt from the old list and stay as they were played: changing the list re-deals
+// every day, and a saved pick is a side, so it would be marked against a different pair.
+export const FIXED_FROM = '2026-10-28';
+export const poolFile = (key) => (/^\d{4}-\d{2}-\d{2}$/.test(key) && key < FIXED_FROM ? 'data/pool-1.json' : 'data/pool.json');
+
 export function prevDay(key) {
   const d = new Date(key + 'T12:00:00');
   d.setDate(d.getDate() - 1);

@@ -8,16 +8,24 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* private mode: play on, unsaved */ } },
 };
 
-let POOL = null, C = [];
+const POOLS = {}; // file -> promise of { items, C }
+const loadPool = (f) => (POOLS[f] ||= fetch(f).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then((p) => ({ items: p.items, C: p.items.map(L.item) })));
 let game = null; // { key, day, practice, pairs, picks }
 
 // `past` is an earlier day's ten (from ?day=): saved, shareable, outside the streak.
 function start(practice, past = null) {
   const day = past || L.dayKey();
   const key = practice ? `practice-${Date.now().toString(36)}` : day;
-  game = { key, day, practice, past: !!past && !practice, pairs: L.pairsFor(POOL.items, key), picks: practice ? [] : store.get('wf:' + day, []) };
-  $('daily').hidden = !practice && !game.past;
-  render();
+  return loadPool(L.poolFile(key)).then(({ items, C }) => {
+    game = { key, day, practice, past: !!past && !practice, C, pairs: L.pairsFor(items, key), picks: practice ? [] : store.get('wf:' + day, []) };
+    $('daily').hidden = !practice && !game.past;
+    render();
+  }).catch(failed);
+}
+function failed(e) {
+  $('round').textContent = '';
+  $('out').textContent = `Could not load the list (${e.message}). Reload to try again.`;
 }
 
 function save() {
@@ -29,7 +37,7 @@ function save() {
   }
 }
 
-const pairAt = (k) => game.pairs[k].map((i) => C[i]);
+const pairAt = (k) => game.pairs[k].map((i) => game.C[i]);
 const marks = () => game.picks.map((p, k) => { const [a, b] = pairAt(k); return L.isRight(a, b, p); });
 
 function render() {
@@ -175,11 +183,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-fetch('data/pool.json').then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).then((p) => {
-  POOL = p; C = p.items.map(L.item);
+loadPool('data/pool.json').then(({ C }) => {
   $('count').textContent = C.length.toLocaleString('en-US');
   start(false, L.pastDay(new URLSearchParams(location.search).get('day'), L.dayKey()));
-}).catch((e) => {
-  $('round').textContent = '';
-  $('out').textContent = `Could not load the list (${e.message}). Reload to try again.`;
-});
+}).catch(failed);
