@@ -54,10 +54,15 @@ eq('every pair is in its band', day.every(([i, j], k) => { const d = Math.abs(C[
 eq('no ties', day.every(([i, j]) => C[i].year !== C[j].year), true);
 const sides = Array.from({ length: 30 }, (_, k) => L.pairsFor(fake, `s${k}`)).flat().map(([i, j]) => L.firstIndex(C[i], C[j]));
 ok('the earlier one is on either side', sides.filter((s) => s === 0).length > 90 && sides.filter((s) => s === 1).length > 90, sides.filter((s) => s === 0).length);
-const picks = Array.from({ length: 40 }, (_, k) => L.pairsFor(fake, `f${k}`)).flat(2);
+const fdays = Array.from({ length: 40 }, (_, k) => L.pairsFor(fake, `f${k}`));
+eq('nothing twice in forty days', fdays.filter((d) => new Set(d.flat()).size !== 20).length, 0);
+const picks = fdays.flat(2);
 const median = picks.slice().sort((a, b) => a - b)[picks.length >> 1];
 ok('picks lean famous (median in the top 40%)', median < 160, median);
 ok('but reach the tail', Math.max(...picks) > 300, Math.max(...picks));
+eq('a long day keeps the last band', L.pairsFor(fake, '2026-10-26', 12).length, 12);
+eq('item reads every field', L.item(['n', -5, 'book', 7, 'Q9', 'a novel']), { name: 'n', year: -5, kind: 'book', fame: 7, q: 'Q9', desc: 'a novel' });
+eq('item with no description', L.item(['n', 1, 'book', 7, 'Q9']).desc, '');
 const tiny = [['a', 1900, 'film', 9, 'Q1', ''], ['b', 1990, 'book', 8, 'Q2', '']];
 eq('a pool too small for ten gives what it can', L.pairsFor(tiny, 'x').length, 1);
 
@@ -72,6 +77,7 @@ const played = new Set(['2026-10-29', '2026-10-28']);
 eq('missedDay skips played days', L.missedDay('2026-10-30', (d) => played.has(d)), '2026-10-27');
 eq('missedDay is yesterday when unplayed', L.missedDay('2026-10-30', () => false), '2026-10-29');
 eq('missedDay stops at the first day', [L.missedDay('2026-10-30', () => true), L.missedDay(L.FIRST_DAY, () => false)], [null, null]);
+eq('missedDay can return the first day', L.missedDay('2026-10-27', () => false), L.FIRST_DAY);
 
 // --- the shipped pool ---------------------------------------------------------------------
 const poolFile = here('./data/pool.json');
@@ -109,12 +115,26 @@ if (existsSync(poolFile)) {
     ['data/pool-1.json', 'data/pool-1.json', 'data/pool.json', 'data/pool.json', 'data/pool.json', 'data/pool.json']);
   const P1 = JSON.parse(readFileSync(old, 'utf8')).items.map(L.item);
   eq('the old list still has the year it was played with', P1.find((x) => x.q === 'Q123397')?.year, 1963);
+  // The days already served, by name: read 2026-10-27 with first-logic.js and pool-1.json
+  // byte-identical to the live site. A change to the hash, rng, bands or draw re-deals them,
+  // and every shared score and saved ?day= pick (a side, per round) then marks a different pair.
+  const P1raw = JSON.parse(readFileSync(old, 'utf8')).items;
+  const served = (d) => L.pairsFor(P1raw, d).map(([i, j]) => [P1raw[i][0], P1raw[j][0]]);
+  eq('served: 2026-10-26', served('2026-10-26'), [['The Big Lebowski', 'Second Epistle to the Thessalonians'], ['Neutron', 'BioShock'],
+    ['Thor: Ragnarok', 'Internal combustion engine'], ['Nokia', 'Car'], ['Seven', 'Intel'], ['Metal Gear Solid', 'Apocalypto'],
+    ['Mobile phone', 'Star Wars: Episode IV – A New Hope'], ['Lost in Translation', 'Harry Potter and the Chamber of Secrets'],
+    ['Van Allen radiation belt', 'The Magnificent Seven'], ['Good Will Hunting', 'eBay']]);
+  eq('served: 2026-10-27', served('2026-10-27'), [['Nestlé', 'Second Epistle to the Thessalonians'], ['Home Alone', 'Mazda'],
+    ["Schindler's List", 'Neutron'], ['Thyristor', 'Man of Steel'], ['Star Wars: Episode V – The Empire Strikes Back', 'Half-Life 2'],
+    ['Book of Mormon', 'Silicon'], ['HIV/AIDS', 'Yamaha Motor Company'], ['Memento', 'SpaceX'], ['Born This Way', 'League of Legends'],
+    ['Burj Khalifa', 'Apocalypto']]);
   eq('shipped: names start with a capital, eBay excepted', I.filter((x) => /^[a-z]/.test(x.name) && !/^[a-z][A-Z]/.test(x.name)).map((x) => x.name), []);
   eq('shipped: descriptions fit a card', I.filter((x) => x.desc.length > 91).length, 0);
   eq('shipped: Europe is not a discovery', by['Europe|discovery'], undefined);
   eq('shipped: no asteroids', I.some((x) => /asteroid/i.test(x.desc)), false);
   const days = Array.from({ length: 60 }, (_, k) => L.pairsFor(P.items, `2026-11-${k}`));
   eq('shipped: sixty days of full tens', days.every((d) => d.length === 10), true);
+  eq('shipped: nothing twice in any of sixty days', days.filter((d) => new Set(d.flat()).size !== 20).length, 0);
 } else ok('shipped: data/pool.json exists (run build.py)', false);
 
 console.log(`${fail ? 'FAILED' : 'ok'}: ${pass} passed, ${fail} failed`);
