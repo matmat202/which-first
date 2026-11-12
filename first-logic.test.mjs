@@ -95,6 +95,9 @@ if (existsSync(poolFile)) {
   eq('shipped: known years', ['Telephone|discovery', 'Titanic|film', 'The Starry Night|painting', 'Thriller|album', 'Uranus|discovery', 'Casablanca|film', 'Paradise Lost|book']
     .map((k) => by[k]), [1876, 1997, 1889, 1982, 1781, 1942, 1667]);
   // The UDHR: P577 1940, P571 1948. Wikidata contradicts itself, so it is out.
+  // Corrected 2026-11-12 (build.py FIX): Sundance 2004; COVID moved the 2019-21 P577s; Cooper, 1826.
+  eq('shipped: corrected years', ['Saw|film', 'No Time to Die|film', 'Doctor Strange in the Multiverse of Madness|film', 'The Last of the Mohicans|book']
+    .map((k) => by[k]), [2004, 2021, 2022, 1826]);
   eq('shipped: self-contradicting dates are out', by['Universal Declaration of Human Rights|book'], undefined);
   eq('shipped: at most 24 chemical elements', I.filter((x) => /^chemical element/.test(x.desc)).length <= 24, true);
   eq('shipped: no year in any description', I.filter((x) => /\b(1\d{3}|20\d\d)\b/.test(x.desc)).map((x) => x.name), []);
@@ -147,6 +150,9 @@ if (existsSync(poolFile)) {
     '2026-11-09': [["Aluminium", "Django Unchained"], ["The Godfather Part II", "Morphine"], ["Moby-Dick", "Electron"], ["Downfall", "Artificial satellite"], ["Spotlight", "M-theory"], ["OpenAI", "No Country for Old Men"], ["Sgt. Pepper's Lonely Hearts Club Band", "Chinatown"], ["Casablanca", "The Grapes of Wrath"], ["The Little Prince", "Computer"], ["eBay", "Petronas Towers"]],
     '2026-11-10': [["Captain America: The Winter Soldier", "Snow White"], ["Batman v Superman: Dawn of Justice", "Brownian motion"], ["The Lord of the Rings: The Return of the King", "Rett syndrome"], ["Hard disk", "Google"], ["The Hunchback of Notre Dame", "Lithium"], ["The Pianist", "Xiaomi"], ["Meteora", "Clash of Clans"], ["Fight Club", "TV Azteca"], ["Steppenwolf", "Adenosine triphosphate"], ["Graphene", "Spider-Man"]],
     '2026-11-11': [["Annie Hall", "Paper"], ["Indiana Jones and the Last Crusade", "Silicon"], ["Citric acid", "The Last of the Mohicans"], ["Amadeus", "Transistor"], ["Computer", "On the Waterfront"], ["Please Please Me", "The Bridge on the River Kwai"], ["Wonder Woman", "Far Cry 3"], ["Grand Theft Auto V", "Inglourious Basterds"], ["Harry Potter and the Philosopher's Stone", "Harry Potter and the Philosopher's Stone"], ["Xiaomi", "Terraria"]],
+    // 11-12 and 11-13 being played when Saw etc. were corrected (2026-11-12, 20:50 UTC).
+    '2026-11-12': [["AFC Ajax","Forbidden City"],["Grand Theft Auto V","The Old Man and the Sea"],["Harry Potter and the Order of the Phoenix","Baskin-Robbins"],["Constitution of India","Star Wars: Episode IV – A New Hope"],["The Sims 4","Web browser"],["The Last Emperor","Fantastic Beasts and Where to Find Them"],["Argo","League of Legends"],["A Thousand Suns","Higgs boson"],["Appetite for Destruction","Lenovo"],["Assassin's Creed IV: Black Flag","Star Wars: Episode VII – The Force Awakens"]],
+    '2026-11-13': [["Pong","Epistle to the Hebrews"],["Hugo","Adenosine triphosphate"],["Mercedes-Benz","Judo"],["The Wonderful Wizard of Oz","Natural selection"],["The Communist Manifesto","Association football"],["Doppler effect","Reuters"],["The Tales of Beedle the Bard","The Avengers"],["Assassin's Creed: Revelations","Birdman"],["The Sixth Sense","eBay"],["Crime and Punishment","Helium"]],
   };
   for (const [d, want] of Object.entries(SERVED)) {
     eq(`served: ${d} from ${L.poolFile(d)}`, L.pairsFor(P.items, d).map(([i, j]) => [P.items[i][0], P.items[j][0]]), want);
@@ -161,7 +167,9 @@ if (existsSync(poolFile)) {
     const days = []; for (let d = '2026-10-26'; days.length < 731; ) { days.push(d); const x = new Date(d + 'T12:00:00Z'); x.setUTCDate(x.getUTCDate() + 1); d = x.toISOString().slice(0, 10); }
     const h = createHash('sha256'), pools = {};
     for (const d of days) { const f = L.poolFile(d); pools[f] ??= JSON.parse(readFileSync(here(f), 'utf8')).items; h.update(d + JSON.stringify(L.pairsFor(pools[f], d))); }
-    eq('two years of tens from launch, unchanged', h.digest('hex'), 'd2a2fa69104517238c1e0414c8fe4880172fb0bda07b7369dd37b15185951b92');
+    // Moved 2026-11-12 on purpose: four year corrections (build.py FIX) re-deal nine days,
+    // the first 2026-11-14, which no time zone had reached. 11-12 and 11-13 are pinned above.
+    eq('two years of tens from launch, unchanged', h.digest('hex'), '2b4754af2ef5df7d203741cbd114b933fe5e68e57cc8b1ecb0e8ee9d0ab94562');
   }
   eq('shipped: names start with a capital, eBay excepted', I.filter((x) => /^[a-z]/.test(x.name) && !/^[a-z][A-Z]/.test(x.name)).map((x) => x.name), []);
   // A year taken out of a description must take its words with it: these read
