@@ -164,6 +164,9 @@ if (existsSync(poolFile)) {
     eq('two years of tens from launch, unchanged', h.digest('hex'), 'd2a2fa69104517238c1e0414c8fe4880172fb0bda07b7369dd37b15185951b92');
   }
   eq('shipped: names start with a capital, eBay excepted', I.filter((x) => /^[a-z]/.test(x.name) && !/^[a-z][A-Z]/.test(x.name)).map((x) => x.name), []);
+  // A year taken out of a description must take its words with it: these read
+  // "company established in", "published in Paris, France between and", "India -present)".
+  eq('shipped: no description left mid-phrase', I.filter((x) => /\b(in|on|since|from|until|between|and|of|by|the|to|around|established|published|completed|developed|written)(…)?$|\(\s*\)|^[\s\/,;–-]|\s[,.;]|[(][^)]*$|^[^(]*[)]/i.test(x.desc)).map((x) => x.name), []);
   eq('shipped: descriptions fit a card', I.filter((x) => x.desc.length > 91).length, 0);
   eq('shipped: Europe is not a discovery', by['Europe|discovery'], undefined);
   eq('shipped: no asteroids', I.some((x) => /asteroid/i.test(x.desc)), false);
