@@ -144,6 +144,7 @@ function drawEnd() {
     : game.past ? 'Earlier days do not count toward your streak.'
     : `${s === 1 ? 'First day of a streak' : `${s}-day streak`}. A new ten tomorrow.`;
   $('share').hidden = game.practice;
+  drawRecord(score);
   const miss = game.practice ? null : L.missedDay(game.day, (k) => store.get('wf:' + k, []).length >= game.pairs.length);
   $('earlier').hidden = !miss;
   if (miss) { $('earlier').href = `?day=${miss}`; $('earlier').textContent = miss === L.prevDay(L.dayKey()) ? "Missed yesterday? Play yesterday's ten" : `Play the ten from ${miss}`; }
@@ -159,6 +160,38 @@ function drawEnd() {
     li.append(mk, t, d);
     return li;
   }));
+}
+
+// Every daily ten finished on this device (today's, or an earlier one via ?day=), with
+// the score this ten got highlighted. Practice tens are not part of it. A day before
+// FIXED_FROM was dealt from the old list, so it is scored against that list.
+function drawRecord(score) {
+  $('rec').hidden = game.practice;
+  if (game.practice) return;
+  const g = game, days = [];
+  for (let d = L.dayKey(); d >= L.FIRST_DAY; d = L.prevDay(d)) {
+    const picks = store.get('wf:' + d, null);
+    if (picks && picks.length >= L.ROUNDS) days.push([d, picks]);
+  }
+  Promise.all(days.map(([d, picks]) => loadPool(L.poolFile(d)).then(({ items }) => L.dayScore(items, d, picks))))
+    .then((all) => {
+      if (game !== g) return; // a practice ten started meanwhile
+      const r = L.record(all.filter((s) => s != null), g.pairs.length);
+      const best = L.bestStreak(store.get('wf:days', []));
+      $('recline').textContent = `${r.played} played · average ${r.avg.toFixed(1)} · best streak ${best}`;
+      const top = Math.max(1, ...r.dist);
+      $('dist').replaceChildren(...r.dist.map((c, s) => {
+        const li = document.createElement('li');
+        if (s === score) li.className = 'me';
+        li.title = `${c} ${c === 1 ? 'ten' : 'tens'} scored ${s}`;
+        li.setAttribute('aria-label', li.title);
+        const bar = document.createElement('i'); bar.style.height = `${(c / top) * 70}%`;
+        const n = document.createElement('span'); n.textContent = String(s);
+        li.append(bar, n);
+        return li;
+      }));
+    })
+    .catch(() => { if (game === g) $('rec').hidden = true; });
 }
 
 async function share() {

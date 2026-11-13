@@ -151,6 +151,43 @@ export function streak(days, today) {
   return n;
 }
 
+// The longest run of consecutive days in `days` (a list of dayKeys, any order).
+export function bestStreak(days) {
+  const have = new Set(days);
+  let best = 0;
+  for (const d of have) {
+    if (have.has(prevDay(d))) continue; // not the start of a run
+    let n = 0;
+    for (let k = d; have.has(k); k = nextDay(k)) n++;
+    best = Math.max(best, n);
+  }
+  return best;
+}
+
+export function nextDay(key) {
+  const d = new Date(key + 'T12:00:00');
+  d.setDate(d.getDate() + 1);
+  return dayKey(d);
+}
+
+// A player's record over every daily ten they finished (today's or an earlier ?day=).
+// `scores` is a list of right-answer counts; dist[s] is how many tens scored s of `n`.
+export function record(scores, n = ROUNDS) {
+  const dist = Array(n + 1).fill(0);
+  for (const s of scores) dist[s]++;
+  const played = scores.length;
+  const avg = played ? scores.reduce((a, b) => a + b, 0) / played : 0;
+  return { played, avg: Math.round(avg * 10) / 10, dist };
+}
+
+// How many of a finished day's picks were right; null if that day's ten is unfinished.
+// `items` must be the list that day was dealt from (poolFile(day)).
+export function dayScore(items, day, picks) {
+  const P = pairsFor(items, day);
+  if (!picks || picks.length < P.length) return null;
+  return P.reduce((n, [i, j], k) => n + (isRight(item(items[i]), item(items[j]), picks[k]) ? 1 : 0), 0);
+}
+
 // Position of a year on the answer's timeline, 0..1 between two padded ends.
 export function span(a, b) {
   const lo = Math.min(a.year, b.year), hi = Math.max(a.year, b.year);
