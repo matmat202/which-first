@@ -38,6 +38,9 @@ export function rng(seed) {
 }
 
 export const item = (r) => ({ name: r[0], year: r[1], kind: r[2], fame: r[3], q: r[4], desc: r[5] || '' });
+// Where to read about a card: its English Wikipedia article, by way of Wikidata, which
+// redirects on the QID (and stays on the item page if there is no English article).
+export const wikiUrl = (c) => (/^Q\d+$/.test(c.q || '') ? `https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/${c.q}` : null);
 
 // Two of a kind is a trivia question about that kind; two kinds is the game.
 export function fits(a, b, [lo, hi]) {

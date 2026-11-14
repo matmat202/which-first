@@ -27,6 +27,8 @@ eq('a tie is right either way', [L.isRight(A('a', 1900), A('b', 1900), 0), L.isR
 eq('verdict names the earlier first', L.verdict(A('the car', 1884), A('the telephone', 1876)),
   'the telephone (1876) came 8 years before the car (1884).');
 eq('caption', L.caption(A('x', 1, 'company')), 'Company · founded');
+eq('wiki link goes by the QID', [L.wikiUrl({ q: 'Q725' }), L.wikiUrl({ q: '' }), L.wikiUrl({}), L.wikiUrl({ q: 'Q7"><x' })],
+  ['https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/Q725', null, null, null]);
 eq('fits needs two kinds', [L.fits(A('a', 1900, 'film'), A('b', 1950, 'film'), [1, 100]), L.fits(A('a', 1900, 'film'), A('b', 1950, 'book'), [1, 100])], [false, true]);
 eq('fits respects the band', [L.fits(A('a', 1900), A('b', 1950, 'book'), [60, 100]), L.fits(A('a', 1900), A('b', 1950, 'book'), [1, 49])], [false, false]);
 eq('fits at both edges', [L.fits(A('a', 1900), A('b', 1950, 'book'), [50, 60]), L.fits(A('a', 1900), A('b', 1950, 'book'), [10, 50])], [true, true]);
@@ -195,6 +197,8 @@ if (existsSync(poolFile)) {
   eq('shipped: no description left mid-phrase', I.filter((x) => /\b(in|on|since|from|until|between|and|of|by|the|to|around|established|published|completed|developed|written)(…)?$|\(\s*\)|^[\s\/,;–-]|\s[,.;]|[(][^)]*$|^[^(]*[)]/i.test(x.desc)).map((x) => x.name), []);
   eq('shipped: descriptions fit a card', I.filter((x) => x.desc.length > 91).length, 0);
   eq('shipped: Europe is not a discovery', by['Europe|discovery'], undefined);
+  eq('shipped: every thing links to its article', I.filter((x) => !L.wikiUrl(x)).map((x) => x.name), []);
+  eq('shipped: Chromium links to Q725 (wikidata.org/wiki/Q725, read 2026-11-14)', L.wikiUrl(I.find((x) => x.name === 'Chromium' && x.kind === 'discovery')), 'https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/Q725');
   eq('shipped: no asteroids', I.some((x) => /asteroid/i.test(x.desc)), false);
   const days = Array.from({ length: 60 }, (_, k) => L.pairsFor(P.items, `2026-11-${k}`));
   eq('shipped: sixty days of full tens', days.every((d) => d.length === 10), true);

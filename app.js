@@ -155,11 +155,22 @@ function drawEnd() {
     const mk = document.createElement('span'); mk.className = 'm ' + (m[k] ? 'y' : 'n'); mk.textContent = m[k] ? '✓' : '✗';
     mk.setAttribute('aria-label', m[k] ? 'right' : 'wrong');
     const [n, so] = L.firstIndex(a, b) === 0 ? [a, b] : [b, a];
-    const t = document.createElement('span'); t.className = 't'; t.textContent = `${n.name} before ${so.name}`;
+    const t = document.createElement('span'); t.className = 't';
+    t.append(wikiLink(n), ' before ', wikiLink(so));
     const d = document.createElement('span'); d.className = 'd'; d.textContent = `${L.fmtYear(n.year)} vs ${L.fmtYear(so.year)}`;
     li.append(mk, t, d);
     return li;
   }));
+}
+
+// A name in the recap, linked to its article so a pair you got wrong can be read about.
+function wikiLink(c) {
+  const href = L.wikiUrl(c);
+  if (!href) return c.name;
+  const a = document.createElement('a');
+  a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.textContent = c.name;
+  a.dataset.q = c.q;
+  return a;
 }
 
 // Every daily ten finished on this device (today's, or an earlier one via ?day=), with
