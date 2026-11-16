@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time sorts · which famous things are famous because they are old</title>
+<meta name="description" content="A scrolling story from the Which Came First? pool: among the albums, books and discoveries famous enough to be remembered, the older ones are the more famous. Among films, games and companies, age makes no difference.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="plot" aria-hidden="true"><div id="axes"></div></div>
+<canvas id="gl" aria-hidden="true"></canvas>
+<p id="err" role="alert"></p>
+<main>
+
+<section class="step" data-kind="kinds"><div>
+  <p class="kicker">Which Came First? · a story</p>
+  <h1>Time sorts</h1>
+  <p>The daily game <a href="../">Which Came First?</a> draws from <b data-fact="n"></b> famous
+  things in <b data-fact="nkinds"></b> kinds: films, albums, books, discoveries and more. Each dot
+  here is one of them.</p>
+  <p>Fame here means one thing: how many Wikipedias have an article on it. Everything in the pool
+  cleared a bar for its kind. So these are not all the albums ever made. They are the albums
+  people still write about.</p>
+  <p>Among those, are the older ones more famous? For some kinds, clearly. For others, not
+  at all.</p>
+  <p class="small">Scroll ↓</p>
+</div></section>
+
+<section class="step" data-kind="scatter:album"><div>
+  <p class="kicker">Chapter 1 · Albums</p>
+  <h2>The old ones are the famous ones</h2>
+  <p>Each of the <b data-fact="count:album"></b> albums sits at its rank among the albums: oldest
+  on the left, most famous at the top. The line is the median fame of each fifth of them by year.</p>
+  <p>It falls all the way. The most famous quarter of the albums came out, on median, in
+  <b data-fact="topq:album"></b>; the least famous quarter in <b data-fact="botq:album"></b>.
+  At the top: <i><b data-fact="topt:album:0"></b></i> (<b data-fact="topy:album:0"></b>) and
+  <i><b data-fact="topt:album:1"></b></i> (<b data-fact="topy:album:1"></b>).</p>
+  <p class="small">Spearman's rank correlation of year with fame: <b data-fact="rho:album"></b>.
+  Shuffling the years among the albums <b data-fact="perm"></b> times reached that
+  <b data-fact="p:album"></b> times.</p>
+</div></section>
+
+<section class="step" data-kind="scatter:book"><div>
+  <p class="kicker">Chapter 2 · Books</p>
+  <h2>The same, over centuries</h2>
+  <p>The <b data-fact="count:book"></b> books run from <b data-fact="oldest:book"></b> to now. The
+  most famous quarter dates, on median, from <b data-fact="topq:book"></b>; the least famous
+  quarter from <b data-fact="botq:book"></b>. The top of the list is
+  <i><b data-fact="topt:book:0"></b></i>, from <b data-fact="topy:book:0"></b>.</p>
+  <p class="small">Rank correlation <b data-fact="rho:book"></b>; shuffles that reached it:
+  <b data-fact="p:book"></b>.</p>
+</div></section>
+
+<section class="step" data-kind="scatter:discovery"><div>
+  <p class="kicker">Chapter 3 · Discoveries</p>
+  <h2>And discoveries, once the elements are out</h2>
+  <p>The pool keeps only the <b data-fact="elements"></b> most famous chemical elements, and that
+  cap, not the bar, picks out the old, much-cited ones. With them the discoveries correlate at
+  <b data-fact="discwith"></b>. The verdict here leaves them out, over the other
+  <b data-fact="used:discovery"></b>: still <b data-fact="rho:discovery"></b>, weaker but there.
+  The most famous quarter is from <b data-fact="topq:discovery"></b>, the least from
+  <b data-fact="botq:discovery"></b>.</p>
+  <p class="small">Shuffles that reached it: <b data-fact="p:discovery"></b>. The chart still
+  shows the elements, faint among the rest.</p>
+</div></section>
+
+<section class="step" data-kind="scatter:film"><div>
+  <p class="kicker">Chapter 4 · Films</p>
+  <h2>Films: no</h2>
+  <p>The <b data-fact="count:film"></b> films are the biggest kind in the pool, and age tells you
+  nothing about which are famous. The most famous quarter came out, on median, in
+  <b data-fact="topq:film"></b>. So did the least famous quarter: <b data-fact="botq:film"></b>.</p>
+  <p>The line rises, then falls. The most famous films are from the middle years; the newest
+  fifth is the least famous, and the oldest fifth is next. Neither end wins.</p>
+  <p class="small">Rank correlation <b data-fact="rho:film"></b>; <b data-fact="p:film"></b>
+  shuffles did as well, so it is what chance looks like.</p>
+</div></section>
+
+<section class="step" data-kind="verdict"><div>
+  <p class="kicker">Chapter 5 · All of them</p>
+  <h2>Three of seven</h2>
+  <p>Every kind with at least <b data-fact="min"></b> things, by its correlation. In purple the
+  kinds where shuffling the years almost never matched it: books, albums and discoveries.</p>
+  <p>Games (<b data-fact="rho:game"></b>) and companies (<b data-fact="rho:company"></b>): nothing.
+  Paintings lean old (<b data-fact="rho:painting"></b>), but at <b data-fact="count:painting"></b>
+  of them chance does that <b data-fact="p:painting"></b> times, so that is not a finding.</p>
+  <p>This page measures that it happens, not why. One reading: the bar is the same for every
+  year, so an old album in the pool has outlasted every album of its year that did not, and
+  has had longer to be written about. Why films would escape that, the data cannot say.</p>
+  <p class="small">Too few to judge, and left grey: <b data-fact="small"></b>.</p>
+</div></section>
+
+<section class="step" data-kind="kinds"><div>
+  <p class="kicker">Coda · Play it</p>
+  <h2>Ten a day</h2>
+  <p><a href="../">Which Came First?</a> puts two of these side by side and asks which came first,
+  ten times a day, from centuries apart down to a year.</p>
+  <p class="small">From Wikidata (CC0), fetched <b data-fact="fetched"></b>: things dated to the
+  year, with a per-kind floor of sitelinks. Fame is the sitelink count. Each kind's
+  correlation is Spearman's, with tied ranks averaged; its test shuffles the years within the
+  kind <b data-fact="perm"></b> times, seeded, and a kind counts only if fewer than 1 in 100
+  shuffles match it. The source and the build are in the
+  <a href="https://github.com/matmat202/which-first">repository</a>.</p>
+</div></section>
+
+</main>
+<script type="module" src="story.js"></script>
+</body>
+</html>
