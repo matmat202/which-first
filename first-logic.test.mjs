@@ -125,6 +125,14 @@ if (existsSync(poolFile)) {
   // Wrong on Wikidata, read by hand 2026-10-27 (projects/first-years/): five corrected...
   eq('shipped: corrected years', ['United States Constitution|book', "Coulomb's law|discovery", 'Rugby sevens|discovery', 'The Mysterious Island|book', 'The Avengers|film']
     .map((k) => by[k]), [1787, 1785, 1883, 1875, 2012]);
+  // TV series date from their first episode (P580), checked against each one's Wikipedia
+  // article 2026-11-16. The Walking Dead's own start time is the comic's 2003; Dexter's P577
+  // was a 2007 rerun.
+  eq('shipped: TV series first aired', ['Friends|tv', 'The Simpsons|tv', 'Breaking Bad|tv', 'Doctor Who|tv', 'The Walking Dead|tv', 'Dexter|tv', 'Family Guy|tv']
+    .map((k) => by[k]), [1994, 1989, 2008, 1963, 2010, 2006, 1999]);
+  // Games Wikidata names only in "mul" were bare QIDs and dropped until 2026-11-16.
+  eq('shipped: games named in mul are in', ['Tetris|game', 'Pac-Man|game', 'Doom|game', 'World of Warcraft|game', 'Grand Theft Auto|game'].map((k) => by[k]), [1985, 1980, 1993, 2004, 1997]);
+  eq('shipped: TV is a kind you meet, not a footnote', I.filter((x) => x.kind === 'tv').length >= 100, true);
   // ...and fifteen with no one right year (The Republic "1963", Hammurabi "1853"), out.
   const OUT = ['Q123397', 'Q9190', 'Q682958', 'Q210752', 'Q131546', 'Q36359', 'Q134566', 'Q12757', 'Q11427', 'Q682', 'Q623', 'Q12725', 'Q16338', 'Q163865', 'Q23648408'];
   eq('shipped: cards with no right year are out', I.filter((x) => OUT.includes(x.q)).map((x) => x.name), []);
@@ -134,8 +142,12 @@ if (existsSync(poolFile)) {
   const { createHash } = await import('node:crypto');
   eq('pool-1.json is the list as first shipped', existsSync(old) && createHash('sha256').update(readFileSync(old)).digest('hex'),
     'da23207afc7268b470dccac23776a277921021c092469bac4222257dd0cd5e13');
-  eq('days before the fix use the old list', ['2026-10-26', '2026-10-27', '2026-10-28', '2027-01-01', 'practice-abc', ''].map(L.poolFile),
-    ['data/pool-1.json', 'data/pool-1.json', 'data/pool.json', 'data/pool.json', 'data/pool.json', 'data/pool.json']);
+  eq('each day reads the list it was dealt from', ['2026-10-26', '2026-10-27', '2026-10-28', '2026-11-18', '2026-11-19', '2027-01-01', 'practice-abc', ''].map(L.poolFile),
+    ['data/pool-1.json', 'data/pool-1.json', 'data/pool-2.json', 'data/pool-2.json', 'data/pool.json', 'data/pool.json', 'data/pool.json', 'data/pool.json']);
+  // pool-2.json is pool.json as served 2026-10-28..11-16 (byte-identical to the live file that
+  // day), frozen when 152 TV series joined the list.
+  eq('pool-2.json is the list as served until TV joined', createHash('sha256').update(readFileSync(here('data/pool-2.json'))).digest('hex'),
+    '1623b00db9515b842dbf1ada92a6fd508d847325e93ce66edd066b28631fd205');
   const P1 = JSON.parse(readFileSync(old, 'utf8')).items.map(L.item);
   eq('the old list still has the year it was played with', P1.find((x) => x.q === 'Q123397')?.year, 1963);
   // The days already served, by name: read 2026-10-27 with first-logic.js and pool-1.json
@@ -173,11 +185,26 @@ if (existsSync(poolFile)) {
     // 11-12 and 11-13 being played when Saw etc. were corrected (2026-11-12, 20:50 UTC).
     '2026-11-12': [["AFC Ajax","Forbidden City"],["Grand Theft Auto V","The Old Man and the Sea"],["Harry Potter and the Order of the Phoenix","Baskin-Robbins"],["Constitution of India","Star Wars: Episode IV – A New Hope"],["The Sims 4","Web browser"],["The Last Emperor","Fantastic Beasts and Where to Find Them"],["Argo","League of Legends"],["A Thousand Suns","Higgs boson"],["Appetite for Destruction","Lenovo"],["Assassin's Creed IV: Black Flag","Star Wars: Episode VII – The Force Awakens"]],
     '2026-11-13': [["Pong","Epistle to the Hebrews"],["Hugo","Adenosine triphosphate"],["Mercedes-Benz","Judo"],["The Wonderful Wizard of Oz","Natural selection"],["The Communist Manifesto","Association football"],["Doppler effect","Reuters"],["The Tales of Beedle the Bard","The Avengers"],["Assassin's Creed: Revelations","Birdman"],["The Sixth Sense","eBay"],["Crime and Punishment","Helium"]],
+    // Dealt from the pre-TV list by the live first-logic.js on 2026-11-16, when 11-17 had
+    // begun east of UTC; 11-16 is the ten the live page dealt that day at 390px.
+    '2026-11-14': [["Chromium","Fight Club"],["Jurassic Park III","Ford Motor Company"],["Potassium","The Communist Manifesto"],["Toyota","HIV"],["The Three Musketeers","Impression, Sunrise"],["Neuro-linguistic programming","Groundhog Day"],["Hydrogen","The Sorrows of Young Werther"],["Diablo","American History X"],["Rebecca","The Little Prince"],["Association football","Nokia"]],
+    '2026-11-15': [["Revolver","12 Angry Men"],["Homeopathy","Star Wars: Episode I – The Phantom Menace"],["Diablo","Telephone"],["Avengers: Endgame","Mobile phone"],["BMW","Deuterium"],["Ford Motor Company","Synapse"],["Far Cry","Shutter Island"],["The Shawshank Redemption","World Wide Web"],["Avatar","The God Delusion"],["The Avengers","Europa Universalis IV"]],
+    '2026-11-16': [["Fluorine","Star Wars: Episode VII – The Force Awakens"],["Citizen Kane","The Red and the Black"],["X-Men","Russell's paradox"],["The Odyssey","Internet protocol suite"],["Bad Romance","Nevermind"],["Nike, Inc.","Black Sabbath"],["Avatar","Grand Theft Auto V"],["Harry Potter and the Order of the Phoenix","Taipei 101"],["Apocalypse Now","Prion"],["Big Bang","All Quiet on the Western Front"]],
+    '2026-11-17': [["Star Wars: Episode VIII – The Last Jedi","Neptune"],["Nickel","Gangnam Style"],["Sherlock Holmes","Audi AG"],["BMW","Capital: A Critique of Political Economy"],["Fight Club","The Exorcist"],["Sophie's World","Blood Diamond"],["The Hobbit: An Unexpected Journey","Meta Platforms"],["The Seventh Seal","The Return of the King"],["Guinness World Records","Thermonuclear weapon"],["Spider-Man 3","Twilight"]],
+    '2026-11-18': [["Phosphorus","AFC Ajax"],["Crouching Tiger, Hidden Dragon","Crime and Punishment"],["Neptune","Snow White"],["The Last of the Mohicans","Helium"],["Harry Potter and the Chamber of Secrets","Iron Man 2"],["Computer","Yamaha Motor Company"],["Pixar","Super Mario 64"],["Integrated circuit","Seven Samurai"],["Xiaomi","Harry Potter and the Order of the Phoenix"],["KFC","All Quiet on the Western Front"]],
   };
   for (const [d, want] of Object.entries(SERVED)) {
-    eq(`served: ${d} from ${L.poolFile(d)}`, L.pairsFor(P.items, d).map(([i, j]) => [P.items[i][0], P.items[j][0]]), want);
+    const I2 = JSON.parse(readFileSync(here(L.poolFile(d)), 'utf8')).items;
+    eq(`served: ${d} from ${L.poolFile(d)}`, L.pairsFor(I2, d).map(([i, j]) => [I2[i][0], I2[j][0]]), want);
   }
-  eq('served: those days read pool.json', [...new Set(Object.keys(SERVED).map(L.poolFile))], ['data/pool.json']);
+  eq('served: those days read pool-2.json', [...new Set(Object.keys(SERVED).map(L.poolFile))], ['data/pool-2.json']);
+  // The day TV joins really deals from the new list: a TV_FROM that never arrives passes every
+  // pin above. Some ten from TV_FROM on has a TV series in it.
+  {
+    let tvDay = null;
+    for (let d = L.TV_FROM, k = 0; k < 14 && !tvDay; d = L.nextDay(d), k++) if (L.pairsFor(P.items, d).flat().some((i) => P.items[i][2] === 'tv')) tvDay = d;
+    eq('a ten within two weeks of TV_FROM has a TV series in it', tvDay !== null && L.poolFile(tvDay), 'data/pool.json');
+  }
   // The deal is frozen, not just its served days (2026-11-11). Pinning only served days goes
   // stale every midnight: on 10-27 the band constants were left as "re-deal only future days",
   // and 15 days later those days had been played. So two years from launch are hashed. A
@@ -189,7 +216,9 @@ if (existsSync(poolFile)) {
     for (const d of days) { const f = L.poolFile(d); pools[f] ??= JSON.parse(readFileSync(here(f), 'utf8')).items; h.update(d + JSON.stringify(L.pairsFor(pools[f], d))); }
     // Moved 2026-11-12 on purpose: four year corrections (build.py FIX) re-deal nine days,
     // the first 2026-11-14, which no time zone had reached. 11-12 and 11-13 are pinned above.
-    eq('two years of tens from launch, unchanged', h.digest('hex'), '2b4754af2ef5df7d203741cbd114b933fe5e68e57cc8b1ecb0e8ee9d0ab94562');
+    // Moved again 2026-11-16 on purpose: 152 TV series and 58 games re-deal from TV_FROM (2026-11-19);
+    // every day before it is pinned above or reads pool-1/pool-2 unchanged.
+    eq('two years of tens from launch, unchanged', h.digest('hex'), '9c2579f62b3e74040af03ce00dc330469740d3c97bdf36c8e2a2a1eb434f4939');
   }
   eq('shipped: names start with a capital, eBay excepted', I.filter((x) => /^[a-z]/.test(x.name) && !/^[a-z][A-Z]/.test(x.name)).map((x) => x.name), []);
   // A year taken out of a description must take its words with it: these read

@@ -115,7 +115,11 @@ export const FIRST_DAY = '2026-10-26';
 // were dealt from the old list and stay as they were played: changing the list re-deals
 // every day, and a saved pick is a side, so it would be marked against a different pair.
 export const FIXED_FROM = '2026-10-28';
-export const poolFile = (key) => (/^\d{4}-\d{2}-\d{2}$/.test(key) && key < FIXED_FROM ? 'data/pool-1.json' : 'data/pool.json');
+// 152 TV series joined on 2026-11-16 (there had been 2). Days up to then keep pool-2.json, the
+// list they were dealt from; TV_FROM is a day no time zone had reached when it shipped.
+export const TV_FROM = '2026-11-19';
+export const poolFile = (key) => (!/^\d{4}-\d{2}-\d{2}$/.test(key) ? 'data/pool.json'
+  : key < FIXED_FROM ? 'data/pool-1.json' : key < TV_FROM ? 'data/pool-2.json' : 'data/pool.json');
 
 export function prevDay(key) {
   const d = new Date(key + 'T12:00:00');
