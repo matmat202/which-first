@@ -131,6 +131,9 @@ if (existsSync(poolFile)) {
   eq('shipped: TV series first aired', ['Friends|tv', 'The Simpsons|tv', 'Breaking Bad|tv', 'Doctor Who|tv', 'The Walking Dead|tv', 'Dexter|tv', 'Family Guy|tv']
     .map((k) => by[k]), [1994, 1989, 2008, 1963, 2010, 2006, 1999]);
   // Games Wikidata names only in "mul" were bare QIDs and dropped until 2026-11-16.
+  // Read 2026-11-19: Forrest Gump 1994, Jane Eyre 1847, ARPANET's first link 1969, Walmart's
+  // first store 1962 (build.py FIX: Wikidata also says 1969, its incorporation).
+  eq('shipped: films, books, companies named in mul are in', ['Forrest Gump|film', 'La La Land|film', 'Avengers: Infinity War|film', 'Jane Eyre|book', 'ARPANET|discovery', 'Walmart|company'].map((k) => by[k]), [1994, 2016, 2018, 1847, 1969, 1962]);
   eq('shipped: games named in mul are in', ['Tetris|game', 'Pac-Man|game', 'Doom|game', 'World of Warcraft|game', 'Grand Theft Auto|game'].map((k) => by[k]), [1985, 1980, 1993, 2004, 1997]);
   eq('shipped: TV is a kind you meet, not a footnote', I.filter((x) => x.kind === 'tv').length >= 100, true);
   // ...and fifteen with no one right year (The Republic "1963", Hammurabi "1853"), out.
@@ -142,12 +145,16 @@ if (existsSync(poolFile)) {
   const { createHash } = await import('node:crypto');
   eq('pool-1.json is the list as first shipped', existsSync(old) && createHash('sha256').update(readFileSync(old)).digest('hex'),
     'da23207afc7268b470dccac23776a277921021c092469bac4222257dd0cd5e13');
-  eq('each day reads the list it was dealt from', ['2026-10-26', '2026-10-27', '2026-10-28', '2026-11-18', '2026-11-19', '2027-01-01', 'practice-abc', ''].map(L.poolFile),
-    ['data/pool-1.json', 'data/pool-1.json', 'data/pool-2.json', 'data/pool-2.json', 'data/pool.json', 'data/pool.json', 'data/pool.json', 'data/pool.json']);
+  eq('each day reads the list it was dealt from', ['2026-10-26', '2026-10-27', '2026-10-28', '2026-11-18', '2026-11-19', '2026-11-20', '2026-11-21', '2027-01-01', 'practice-abc', ''].map(L.poolFile),
+    ['data/pool-1.json', 'data/pool-1.json', 'data/pool-2.json', 'data/pool-2.json', 'data/pool-3.json', 'data/pool-3.json', 'data/pool.json', 'data/pool.json', 'data/pool.json', 'data/pool.json']);
   // pool-2.json is pool.json as served 2026-10-28..11-16 (byte-identical to the live file that
   // day), frozen when 152 TV series joined the list.
   eq('pool-2.json is the list as served until TV joined', createHash('sha256').update(readFileSync(here('data/pool-2.json'))).digest('hex'),
     '1623b00db9515b842dbf1ada92a6fd508d847325e93ce66edd066b28631fd205');
+  // pool-3.json is pool.json as served 2026-11-19 (byte-identical to the live file that day),
+  // frozen when six things Wikidata names only in "mul" joined the list.
+  eq('pool-3.json is the list as served until the mul names joined', createHash('sha256').update(readFileSync(here('data/pool-3.json'))).digest('hex'),
+    'bfdb44bb7acb7e4e35fadf9497b1b766802d95a1a2093d95cef38f7bcf264adf');
   const P1 = JSON.parse(readFileSync(old, 'utf8')).items.map(L.item);
   eq('the old list still has the year it was played with', P1.find((x) => x.q === 'Q123397')?.year, 1963);
   // The days already served, by name: read 2026-10-27 with first-logic.js and pool-1.json
@@ -198,12 +205,34 @@ if (existsSync(poolFile)) {
     eq(`served: ${d} from ${L.poolFile(d)}`, L.pairsFor(I2, d).map(([i, j]) => [I2[i][0], I2[j][0]]), want);
   }
   eq('served: those days read pool-2.json', [...new Set(Object.keys(SERVED).map(L.poolFile))], ['data/pool-2.json']);
+  // 11-19 is the ten the live page dealt that day at 390px; 11-20 dealt from the same files.
+  const SERVED3 = {
+    '2026-11-19': [["Neuschwanstein Castle","Revolver"],["Nokia","The Godfather"],["Peppa Pig","The Exorcist"],["Civilization IV","Quicksort"],["Web browser","Thor: The Dark World"],["Prison Break","Parasite"],["SpongeBob SquarePants","Brokeback Mountain"],["Hewlett-Packard","Saludos Amigos"],["Harry Potter and the Order of the Phoenix","The Prestige"],["The Vampire Diaries","The King's Speech"]],
+    '2026-11-20': [["World of Warcraft","Uranus"],["GoldenEye","Ford Motor Company"],["Lawrence of Arabia","Left 4 Dead 2"],["Braveheart","Guinness World Records"],["Good Will Hunting","The Alchemist"],["Burj Khalifa","The Fifth Element"],["Spectre","Mode Gakuen Cocoon Tower"],["Association football","Madame Bovary"],["Neon Genesis Evangelion","The Silence of the Lambs"],["Harry Potter and the Half-Blood Prince","Xiaomi"]],
+  };
+  for (const [d, want] of Object.entries(SERVED3)) {
+    const I3 = JSON.parse(readFileSync(here(L.poolFile(d)), 'utf8')).items;
+    eq(`served: ${d} from ${L.poolFile(d)}`, L.pairsFor(I3, d).map(([i, j]) => [I3[i][0], I3[j][0]]), want);
+  }
   // The day TV joins really deals from the new list: a TV_FROM that never arrives passes every
   // pin above. Some ten from TV_FROM on has a TV series in it.
   {
     let tvDay = null;
-    for (let d = L.TV_FROM, k = 0; k < 14 && !tvDay; d = L.nextDay(d), k++) if (L.pairsFor(P.items, d).flat().some((i) => P.items[i][2] === 'tv')) tvDay = d;
-    eq('a ten within two weeks of TV_FROM has a TV series in it', tvDay !== null && L.poolFile(tvDay), 'data/pool.json');
+    for (let d = L.TV_FROM, k = 0; k < 14 && !tvDay; d = L.nextDay(d), k++) {
+      const It = JSON.parse(readFileSync(here(L.poolFile(d)), 'utf8')).items;
+      if (L.pairsFor(It, d).flat().some((i) => It[i][2] === 'tv')) tvDay = d;
+    }
+    eq('a ten within two weeks of TV_FROM has a TV series in it', tvDay !== null && L.poolFile(tvDay) !== 'data/pool-2.json', true);
+  }
+  // Likewise the mul names: some ten soon after NAMED_FROM deals one of them.
+  {
+    const MUL = ['Q134773', 'Q23780914', 'Q20856802', 'Q182961', 'Q177524', 'Q483551'];
+    let mulDay = null;
+    for (let d = L.NAMED_FROM, k = 0; k < 60 && !mulDay; d = L.nextDay(d), k++) {
+      const Im = JSON.parse(readFileSync(here(L.poolFile(d)), 'utf8')).items;
+      if (L.pairsFor(Im, d).flat().some((i) => MUL.includes(Im[i][4]))) mulDay = d;
+    }
+    eq('a ten within 60 days of NAMED_FROM deals a name that was only in mul', mulDay !== null, true);
   }
   // The deal is frozen, not just its served days (2026-11-11). Pinning only served days goes
   // stale every midnight: on 10-27 the band constants were left as "re-deal only future days",
@@ -218,7 +247,9 @@ if (existsSync(poolFile)) {
     // the first 2026-11-14, which no time zone had reached. 11-12 and 11-13 are pinned above.
     // Moved again 2026-11-16 on purpose: 152 TV series and 58 games re-deal from TV_FROM (2026-11-19);
     // every day before it is pinned above or reads pool-1/pool-2 unchanged.
-    eq('two years of tens from launch, unchanged', h.digest('hex'), '9c2579f62b3e74040af03ce00dc330469740d3c97bdf36c8e2a2a1eb434f4939');
+    // Moved again 2026-11-19 on purpose: six mul-named things re-deal from NAMED_FROM (2026-11-21);
+    // every day before it reads pool-1/2/3 unchanged (11-19, 11-20 pinned above).
+    eq('two years of tens from launch, unchanged', h.digest('hex'), '7719257e78225418fe82f6710d1c8278932e2dfd0542742b9348ed3902e79785');
   }
   eq('shipped: names start with a capital, eBay excepted', I.filter((x) => /^[a-z]/.test(x.name) && !/^[a-z][A-Z]/.test(x.name)).map((x) => x.name), []);
   // A year taken out of a description must take its words with it: these read

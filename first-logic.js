@@ -118,8 +118,13 @@ export const FIXED_FROM = '2026-10-28';
 // 152 TV series joined on 2026-11-16 (there had been 2). Days up to then keep pool-2.json, the
 // list they were dealt from; TV_FROM is a day no time zone had reached when it shipped.
 export const TV_FROM = '2026-11-19';
+// Six famous things had no English name on Wikidata (only "mul"), so they were dropped until
+// 2026-11-19: Forrest Gump, La La Land, Avengers: Infinity War, Jane Eyre, ARPANET, Walmart.
+// Days from TV_FROM up to NAMED_FROM keep pool-3.json; NAMED_FROM no time zone had reached.
+export const NAMED_FROM = '2026-11-21';
 export const poolFile = (key) => (!/^\d{4}-\d{2}-\d{2}$/.test(key) ? 'data/pool.json'
-  : key < FIXED_FROM ? 'data/pool-1.json' : key < TV_FROM ? 'data/pool-2.json' : 'data/pool.json');
+  : key < FIXED_FROM ? 'data/pool-1.json' : key < TV_FROM ? 'data/pool-2.json'
+  : key < NAMED_FROM ? 'data/pool-3.json' : 'data/pool.json');
 
 export function prevDay(key) {
   const d = new Date(key + 'T12:00:00');
