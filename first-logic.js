@@ -98,7 +98,10 @@ export function verdict(a, b) {
   return `${f.name} (${fmtYear(f.year)}) came ${gapWords(a, b)} before ${s.name} (${fmtYear(s.year)}).`;
 }
 
+// "Invention or discovery · discovered or invented" said it twice and took two lines on a
+// phone card (~23 characters wide at 390px); the kind already says what its date means.
 export function caption(c) {
+  if (c.kind === 'discovery') return KIND.discovery;
   return `${KIND[c.kind] || c.kind} · ${VERB[c.kind] || 'dated'}`;
 }
 

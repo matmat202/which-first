@@ -27,6 +27,7 @@ eq('a tie is right either way', [L.isRight(A('a', 1900), A('b', 1900), 0), L.isR
 eq('verdict names the earlier first', L.verdict(A('the car', 1884), A('the telephone', 1876)),
   'the telephone (1876) came 8 years before the car (1884).');
 eq('caption', L.caption(A('x', 1, 'company')), 'Company · founded');
+eq('caption of a discovery says it once', L.caption(A('x', 1, 'discovery')), 'Invention or discovery');
 eq('wiki link goes by the QID', [L.wikiUrl({ q: 'Q725' }), L.wikiUrl({ q: '' }), L.wikiUrl({}), L.wikiUrl({ q: 'Q7"><x' })],
   ['https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/Q725', null, null, null]);
 eq('fits needs two kinds', [L.fits(A('a', 1900, 'film'), A('b', 1950, 'film'), [1, 100]), L.fits(A('a', 1900, 'film'), A('b', 1950, 'book'), [1, 100])], [false, true]);
