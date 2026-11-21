@@ -34,6 +34,10 @@ eq('fits respects the band', [L.fits(A('a', 1900), A('b', 1950, 'book'), [60, 10
 eq('fits at both edges', [L.fits(A('a', 1900), A('b', 1950, 'book'), [50, 60]), L.fits(A('a', 1900), A('b', 1950, 'book'), [10, 50])], [true, true]);
 eq('day key is local', L.dayKey(new Date(2026, 9, 26, 23, 30)), '2026-10-26');
 eq('share', L.shareText('2026-10-26', [true, false, true]), 'Which Came First? 2026-10-26: 2/3\n🟩🟥🟩');
+{ // the shared link deals the shared day: opened later it is that day's ten, opened the same day it is today's
+  const link = L.shareLink('https://x.test/wf/', '2026-11-15'), q = new URL(link).searchParams.get('day');
+  eq('share link carries its day', [link, L.pastDay(q, '2026-11-21'), L.pastDay(q, '2026-11-15')], ['https://x.test/wf/?day=2026-11-15', '2026-11-15', null]);
+}
 eq('streak', [L.streak(['2026-10-24', '2026-10-25', '2026-10-26'], '2026-10-26'), L.streak(['2026-10-24', '2026-10-25'], '2026-10-26'),
   L.streak(['2026-10-23', '2026-10-25'], '2026-10-26'), L.streak([], '2026-10-26')], [3, 2, 1, 0]);
 const sp = L.span(A('a', 1900), A('b', 2000));
