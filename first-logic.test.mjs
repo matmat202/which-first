@@ -98,6 +98,12 @@ eq('pastDay takes the first day', L.pastDay(L.FIRST_DAY, '2026-10-30'), L.FIRST_
 eq('pastDay refuses before the first day', L.pastDay('2026-10-25', '2026-10-30'), null);
 eq('pastDay refuses today and later', [L.pastDay('2026-10-30', '2026-10-30'), L.pastDay('2026-10-31', '2026-10-30')], [null, null]);
 eq('pastDay refuses non-dates', ['2026-11-31', '2027-02-29', '2026-13-01', '26-10-27', '', null, '2026-10-27x'].map((p) => L.pastDay(p, '2027-06-01')), [null, null, null, null, null, null, null]);
+// a sharer ahead in time zone: Tokyo's 23rd reaches California on its 22nd
+eq('linkDay takes tomorrow, earlier days, not today or later', ['2026-11-23', '2026-11-21', L.FIRST_DAY, '2026-11-22', '2026-11-24', '2026-12-01'].map((p) => L.linkDay(p, '2026-11-22')),
+  ['2026-11-23', '2026-11-21', L.FIRST_DAY, null, null, null]);
+eq('linkDay crosses a month and a year end', [L.linkDay('2026-12-01', '2026-11-30'), L.linkDay('2027-01-01', '2026-12-31'), L.linkDay('2026-11-31', '2026-11-30')], ['2026-12-01', '2027-01-01', null]);
+eq('linkDay refuses non-dates and before the first day', ['', null, '2026-11-23x', '2026-10-25'].map((p) => L.linkDay(p, '2026-11-22')), [null, null, null, null]);
+eq('linkDay takes the first day as tomorrow, not the day before it', [L.linkDay(L.FIRST_DAY, L.prevDay(L.FIRST_DAY)), L.linkDay(L.prevDay(L.FIRST_DAY), L.prevDay(L.prevDay(L.FIRST_DAY)))], [L.FIRST_DAY, null]);
 const played = new Set(['2026-10-29', '2026-10-28']);
 eq('missedDay skips played days', L.missedDay('2026-10-30', (d) => played.has(d)), '2026-10-27');
 eq('missedDay is yesterday when unplayed', L.missedDay('2026-10-30', () => false), '2026-10-29');

@@ -144,6 +144,14 @@ export function pastDay(param, today) {
   return param >= FIRST_DAY && param < today ? param : null;
 }
 
+// The day a shared ?day= link plays: an earlier day (pastDay), or tomorrow. Time zones
+// put a sharer up to a day ahead: a link from Tokyo on its 23rd reaches California on the
+// 22nd, and refusing it served the friend a different ten from the one being compared.
+// Today, and anything later than tomorrow, is null.
+export function linkDay(param, today) {
+  return pastDay(param, today) ?? (param === nextDay(today) && param >= FIRST_DAY ? param : null);
+}
+
 // The latest day before `from` whose ten is unfinished, back to FIRST_DAY; null if none.
 // `done(day)` says whether that day's ten was played to the end.
 export function missedDay(from, done) {

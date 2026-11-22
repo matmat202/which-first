@@ -13,13 +13,14 @@ const loadPool = (f) => (POOLS[f] ||= fetch(f).then((r) => { if (!r.ok) throw ne
   .then((p) => ({ items: p.items, C: p.items.map(L.item) })));
 let game = null; // { key, day, practice, pairs, picks }
 
-// `past` is an earlier day's ten (from ?day=): saved, shareable, outside the streak.
-function start(practice, past = null) {
-  const day = past || L.dayKey();
+// `linked` is a ?day= ten (linkDay): an earlier day's is saved and shareable but outside the
+// streak; tomorrow's (a sharer ahead in time zone) joins wf:days, so it counts once it is today.
+function start(practice, linked = null) {
+  const today = L.dayKey(), day = linked || today;
   const key = practice ? `practice-${Date.now().toString(36)}` : day;
   return loadPool(L.poolFile(key)).then(({ items, C }) => {
-    game = { key, day, practice, past: !!past && !practice, C, pairs: L.pairsFor(items, key), picks: practice ? [] : store.get('wf:' + day, []) };
-    $('daily').hidden = !practice && !game.past;
+    game = { key, day, practice, past: !practice && day < today, ahead: !practice && day > today, C, pairs: L.pairsFor(items, key), picks: practice ? [] : store.get('wf:' + day, []) };
+    $('daily').hidden = !practice && !game.past && !game.ahead;
     render();
   }).catch(failed);
 }
@@ -64,7 +65,7 @@ function drawMarks(now) {
 
 function drawRound(k, answered) {
   const [a, b] = pairAt(k);
-  $('round').textContent = `${game.practice ? 'Practice · ' : game.past ? `${game.day} · ` : ''}Round ${k + 1} of ${game.pairs.length}`;
+  $('round').textContent = `${game.practice ? 'Practice · ' : game.past || game.ahead ? `${game.day} · ` : ''}Round ${k + 1} of ${game.pairs.length}`;
   const btns = [...$('pick').querySelectorAll('button')];
   [a, b].forEach((c, i) => {
     const el = btns[i];
@@ -137,17 +138,18 @@ function drawLine(a, b) {
 
 function drawEnd() {
   const m = marks(), score = m.filter(Boolean).length;
-  $('endday').textContent = game.practice ? 'Practice ten' : `${game.past ? 'Earlier' : 'Today\'s'} ten · ${game.day}`;
+  $('endday').textContent = game.practice ? 'Practice ten' : `${game.past ? 'Earlier' : game.ahead ? 'Tomorrow\'s' : 'Today\'s'} ten · ${game.day}`;
   $('score').textContent = `${score} / ${m.length}`;
   const s = L.streak(store.get('wf:days', []), game.day);
   $('streak').textContent = game.practice ? 'Practice rounds do not count toward your streak.'
     : game.past ? 'Earlier days do not count toward your streak.'
+    : game.ahead ? 'Already today where the link came from. It joins your streak tomorrow.'
     : `${s === 1 ? 'First day of a streak' : `${s}-day streak`}. A new ten tomorrow.`;
   $('share').hidden = game.practice;
   drawRecord(score);
   const miss = game.practice ? null : L.missedDay(game.day, (k) => store.get('wf:' + k, []).length >= game.pairs.length);
   $('earlier').hidden = !miss;
-  if (miss) { $('earlier').href = `?day=${miss}`; $('earlier').textContent = miss === L.prevDay(L.dayKey()) ? "Missed yesterday? Play yesterday's ten" : `Play the ten from ${miss}`; }
+  if (miss) { $('earlier').href = `?day=${miss}`; $('earlier').textContent = miss === L.dayKey() ? "Play today's ten" : miss === L.prevDay(L.dayKey()) ? "Missed yesterday? Play yesterday's ten" : `Play the ten from ${miss}`; }
   $('copied').textContent = '';
   $('recap').replaceChildren(...game.pairs.map((_, k) => {
     const [a, b] = pairAt(k);
@@ -180,7 +182,7 @@ function drawRecord(score) {
   $('rec').hidden = game.practice;
   if (game.practice) return;
   const g = game, days = [];
-  for (let d = L.dayKey(); d >= L.FIRST_DAY; d = L.prevDay(d)) {
+  for (let d = L.nextDay(L.dayKey()); d >= L.FIRST_DAY; d = L.prevDay(d)) { // from tomorrow: a ten played ahead via ?day=
     const picks = store.get('wf:' + d, null);
     if (picks && picks.length >= L.ROUNDS) days.push([d, picks]);
   }
@@ -230,8 +232,8 @@ document.addEventListener('keydown', (e) => {
 loadPool('data/pool.json').then(({ C }) => {
   $('count').textContent = C.length.toLocaleString('en-US');
   // A shared link carries ?day=; opened on that day it is today's ten, so drop it from the
-  // address, or the tab would replay this date tomorrow.
-  const past0 = L.pastDay(new URLSearchParams(location.search).get('day'), L.dayKey());
-  if (!past0 && location.search) history.replaceState(null, '', location.pathname);
-  start(false, past0);
+  // address, or the tab would replay this date tomorrow. A day ahead is kept (linkDay).
+  const day0 = L.linkDay(new URLSearchParams(location.search).get('day'), L.dayKey());
+  if (!day0 && location.search) history.replaceState(null, '', location.pathname);
+  start(false, day0);
 }).catch(failed);
