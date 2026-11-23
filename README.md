@@ -20,6 +20,8 @@ of how well known something is. Each one gets one year:
 - **Films, books, games, albums, songs:** the first publication or release date. Casablanca
   has three (1942, 1943, 1947), and the earliest is the year it came out.
 - **Companies, landmarks, paintings:** inception, when there's no publication date.
+  For five landmarks, inception was the year building began (Burj Khalifa, 2004), so they
+  get the year they opened instead (2010).
 
 Some things are left out on purpose: places "discovered" by Europeans, the thousands of
 asteroids and galaxies, anything whose year is only known to the decade, and anything whose

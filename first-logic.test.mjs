@@ -157,7 +157,12 @@ if (existsSync(poolFile)) {
   eq('pool-1.json is the list as first shipped', existsSync(old) && createHash('sha256').update(readFileSync(old)).digest('hex'),
     'da23207afc7268b470dccac23776a277921021c092469bac4222257dd0cd5e13');
   eq('each day reads the list it was dealt from', ['2026-10-26', '2026-10-27', '2026-10-28', '2026-11-18', '2026-11-19', '2026-11-20', '2026-11-21', '2027-01-01', 'practice-abc', ''].map(L.poolFile),
-    ['data/pool-1.json', 'data/pool-1.json', 'data/pool-2.json', 'data/pool-2.json', 'data/pool-3.json', 'data/pool-3.json', 'data/pool.json', 'data/pool.json', 'data/pool.json', 'data/pool.json']);
+    ['data/pool-1.json', 'data/pool-1.json', 'data/pool-2.json', 'data/pool-2.json', 'data/pool-3.json', 'data/pool-3.json', 'data/pool-4.json', 'data/pool.json', 'data/pool.json', 'data/pool.json']);
+  eq('days either side of BUILT_FROM', ['2026-11-25', '2026-11-26'].map(L.poolFile), ['data/pool-4.json', 'data/pool.json']);
+  // pool-4.json is pool.json as served 2026-11-23 (byte-identical to the live file that day),
+  // frozen when five landmarks moved from the year building began to the year they opened.
+  eq('pool-4.json is the list as served until the landmarks were corrected', createHash('sha256').update(readFileSync(here('data/pool-4.json'))).digest('hex'),
+    '170eb9d5575ae4a8fb108aa45e3f90eff684e3e1f6f8fb926d21c078c69af6e5');
   // pool-2.json is pool.json as served 2026-10-28..11-16 (byte-identical to the live file that
   // day), frozen when 152 TV series joined the list.
   eq('pool-2.json is the list as served until TV joined', createHash('sha256').update(readFileSync(here('data/pool-2.json'))).digest('hex'),
@@ -225,6 +230,33 @@ if (existsSync(poolFile)) {
     const I3 = JSON.parse(readFileSync(here(L.poolFile(d)), 'utf8')).items;
     eq(`served: ${d} from ${L.poolFile(d)}`, L.pairsFor(I3, d).map(([i, j]) => [I3[i][0], I3[j][0]]), want);
   }
+  // 11-23 is the ten the live page dealt that day at 390px; the others dealt from the same files.
+  const SERVED4 = {
+    '2026-11-21': [["Potassium","Million Dollar Baby"],["Blade Runner","Doppler effect"],["Shaun the Sheep","Some Like It Hot"],["Fargo","Sony Group"],["The Dark Knight Rises","Super Mario Bros."],["The Incredible Hulk","The Penthouse: War in Life"],["Modern Family","Candy Crush Saga"],["Wind turbine","The Picture of Dorian Gray"],["Google","Titanic"],["Mass–energy equivalence","Ford Motor Company"]],
+    '2026-11-22': [["East India Company","Amélie"],["The Brothers Karamazov","The Bridge on the River Kwai"],["Gangs of New York","Car"],["Integrated circuit","Lost"],["For a Few Dollars More","Atomic clock"],["Twilight","Horizon Zero Dawn"],["Blood Diamond","Sex and the City"],["WWE","Hard disk"],["Meddle","Video game console"],["Jurassic Park","eBay"]],
+    '2026-11-23': [["Aluminium","Harry Potter and the Half-Blood Prince"],["Strange Case of Dr Jekyll and Mr Hyde","Huawei"],["South Park","Vacuum tube"],["Microsoft","The Hobbit"],["Lucy","Google"],["The Shawshank Redemption","Lost"],["Hugo","World of Warcraft"],["Heat","Sex and the City"],["The Godfather Part II","Microprocessor"],["The Little Prince","Computer"]],
+    '2026-11-24': [["Beryllium","First Epistle to Timothy"],["Barry Lyndon","Sewing machine"],["Oxycodone","Happy Tree Friends"],["A Game of Thrones","Portal 2"],["Black Swan","Metallica"],["Barney & Friends","Sin City"],["Fallout 3","Interstellar"],["Hadron","Ben-Hur"],["Hard Candy","Call of Duty: Black Ops"],["Braveheart","Amazon"]],
+    '2026-11-25': [["United States Constitution","The Magnificent Seven"],["The Godfather","Car"],["Animal Farm","Ford Motor Company"],["The Game","Brooklyn Nine-Nine"],["Two and a Half Men","Spotlight"],["Moulin Rouge!","A Game of Thrones"],["Telephone","Nestlé"],["StarCraft","Braveheart"],["Ben 10","Star Wars: Episode II – Attack of the Clones"],["Harry Potter and the Chamber of Secrets","Cast Away"]],
+  };
+  for (const [d, want] of Object.entries(SERVED4)) {
+    const I4 = JSON.parse(readFileSync(here(L.poolFile(d)), 'utf8')).items;
+    eq(`served: ${d} from ${L.poolFile(d)}`, L.pairsFor(I4, d).map(([i, j]) => [I4[i][0], I4[j][0]]), want);
+  }
+  // A landmark card says "built": the year it opened, not the year building began (Wikidata
+  // P1619, read 2026-11-23). The frozen list keeps the years those days were played with.
+  const BUILT = { Q12495: 2010, Q29294: 1973, Q83063: 1999, Q4152: 1886, Q83101: 2004, Q9188: 1931 };
+  eq('shipped: landmarks carry the year they opened', I.filter((x) => x.q in BUILT).map((x) => [x.q, x.year]).sort(), Object.entries(BUILT).sort());
+  eq('pool-4.json keeps Burj Khalifa at 2004', JSON.parse(readFileSync(here('data/pool-4.json'), 'utf8')).items.find((x) => x[4] === 'Q12495')?.[1], 2004);
+  // ...and BUILT_FROM really arrives: some ten soon after it deals a corrected landmark.
+  {
+    const LM = ['Q12495', 'Q29294', 'Q83063', 'Q4152', 'Q83101'];
+    let lmDay = null;
+    for (let d = L.BUILT_FROM, k = 0; k < 60 && !lmDay; d = L.nextDay(d), k++) {
+      const Il = JSON.parse(readFileSync(here(L.poolFile(d)), 'utf8')).items;
+      if (L.pairsFor(Il, d).flat().some((i) => LM.includes(Il[i][4]) && Il[i][1] === BUILT[Il[i][4]])) lmDay = d;
+    }
+    eq('a ten within 60 days of BUILT_FROM deals a corrected landmark', lmDay !== null, true);
+  }
   // The day TV joins really deals from the new list: a TV_FROM that never arrives passes every
   // pin above. Some ten from TV_FROM on has a TV series in it.
   {
@@ -260,7 +292,10 @@ if (existsSync(poolFile)) {
     // every day before it is pinned above or reads pool-1/pool-2 unchanged.
     // Moved again 2026-11-19 on purpose: six mul-named things re-deal from NAMED_FROM (2026-11-21);
     // every day before it reads pool-1/2/3 unchanged (11-19, 11-20 pinned above).
-    eq('two years of tens from launch, unchanged', h.digest('hex'), '7719257e78225418fe82f6710d1c8278932e2dfd0542742b9348ed3902e79785');
+    // Moved again 2026-11-23 on purpose: five landmark years re-deal 138 days from BUILT_FROM
+    // (2026-11-26); with pool-4.json read for every day from NAMED_FROM on, the old hash
+    // (7719257e…) comes back exactly, so nothing before 11-26 moved (11-21..11-25 pinned above).
+    eq('two years of tens from launch, unchanged', h.digest('hex'), 'e60483af6a832e5501cf1f9ec013be0ceabbd4a934d607c8e74652da0265e322');
   }
   eq('shipped: names start with a capital, eBay excepted', I.filter((x) => /^[a-z]/.test(x.name) && !/^[a-z][A-Z]/.test(x.name)).map((x) => x.name), []);
   // A year taken out of a description must take its words with it: these read

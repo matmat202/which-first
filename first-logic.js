@@ -125,9 +125,13 @@ export const TV_FROM = '2026-11-19';
 // 2026-11-19: Forrest Gump, La La Land, Avengers: Infinity War, Jane Eyre, ARPANET, Walmart.
 // Days from TV_FROM up to NAMED_FROM keep pool-3.json; NAMED_FROM no time zone had reached.
 export const NAMED_FROM = '2026-11-21';
+// Five landmarks carried the year building began, on a card that says "built" (Burj Khalifa
+// 2004, opened 2010). Days from NAMED_FROM up to BUILT_FROM keep pool-4.json; BUILT_FROM is
+// two days past any time zone's today when it shipped (2026-11-23), since a link can deal tomorrow.
+export const BUILT_FROM = '2026-11-26';
 export const poolFile = (key) => (!/^\d{4}-\d{2}-\d{2}$/.test(key) ? 'data/pool.json'
   : key < FIXED_FROM ? 'data/pool-1.json' : key < TV_FROM ? 'data/pool-2.json'
-  : key < NAMED_FROM ? 'data/pool-3.json' : 'data/pool.json');
+  : key < NAMED_FROM ? 'data/pool-3.json' : key < BUILT_FROM ? 'data/pool-4.json' : 'data/pool.json');
 
 export function prevDay(key) {
   const d = new Date(key + 'T12:00:00');
